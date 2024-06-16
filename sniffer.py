@@ -46,6 +46,11 @@ def udp_headers(packet):
     udp_headers_length = int(binascii.hexlify(packet[4:6]).decode(), 16)
     data = packet[8:]
     return source_port, destination_port, udp_headers_length, data
+def icmp_headers(packet):
+    icmp_type = packet[0]
+    code = packet[1]
+    icmp_data = binascii.hexlify(packet[5:8]).decode()
+    return icmp_type, code, icmp_data
 
 if __name__ == "__main__":
     raw_socket = socket.socket(socket.PF_PACKET, socket.SOCK_RAW, socket.htons(0x0800))
@@ -63,6 +68,9 @@ if __name__ == "__main__":
             elif protocol == 17:
                 source_port, destination_port, udp_headers_length, data = udp_headers(remaining_packet)
                 print(f"\tUDP Packet\n\t\tSource Port => {source_port}, Destination Port => {destination_port}")
+            elif protocol == 27:
+                icmp_type, code, icmp_data = icmp_headers(remaining_packet)
+                print(f"\tICMP Packet\n\t\tICMP Type => {icmp_type}, Code => {code}, ICMP Data => {icmp_data}")
     except KeyboardInterrupt:
         print("\nKeyboard Interrupt")
     except Exception as error:
