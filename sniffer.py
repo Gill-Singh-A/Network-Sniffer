@@ -40,6 +40,12 @@ def tcp_headers(packet):
     syn = flags[6]
     fin = flags[7]
     return source_port, destination_port, sequence_number, ack_number, urg, ack, psh, rst, syn, fin, packet_length, data
+def udp_headers(packet):
+    source_port = int(binascii.hexlify(packet[:2]).decode(), 16)
+    destination_port = int(binascii.hexlify(packet[2:4]).decode(), 16)
+    udp_headers_length = int(binascii.hexlify(packet[4:6]).decode(), 16)
+    data = packet[8:]
+    return source_port, destination_port, udp_headers_length, data
 
 if __name__ == "__main__":
     raw_socket = socket.socket(socket.PF_PACKET, socket.SOCK_RAW, socket.htons(0x0800))
@@ -54,6 +60,9 @@ if __name__ == "__main__":
             if protocol == 6:
                 source_port, destination_port, sequence_number, ack_number, urg, ack, psh, rst, syn, fin, packet_length, data = tcp_headers(remaining_packet)
                 print(f"\tTCP Packet\n\t\tSource Port => {source_port}, Destination Port => {destination_port}\n\t\tSequence Number => {sequence_number}, Acknowledgment Number => {ack_number}\n\t\tFlags\n\t\t\tURG => {urg}, ACK => {ack}, PSH => {psh}\n\t\t\tRST => {rst}, SYN => {syn}, FIN => {fin}")
+            elif protocol == 17:
+                source_port, destination_port, udp_headers_length, data = udp_headers(remaining_packet)
+                print(f"\tUDP Packet\n\t\tSource Port => {source_port}, Destination Port => {destination_port}")
     except KeyboardInterrupt:
         print("\nKeyboard Interrupt")
     except Exception as error:
